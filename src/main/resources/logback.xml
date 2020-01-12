@@ -1,0 +1,26 @@
+<configuration>
+    <appender name="STDOUT_AKKA" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%date{ISO8601} %-5level %logger{36} %X{akkaSource} - %msg%n</pattern>
+            <!--pattern>%date{ISO8601} [%X{sourceThread}] %-5level %logger{36} %X{akkaTimestamp} %X{akkaSource} %X{sourceActorSystem} - %msg%n</pattern-->
+        </encoder>
+    </appender>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%date{ISO8601} %-5level %logger{36} - %msg%n</pattern>
+            <!--pattern>%date{ISO8601} [%thread] %-5level %logger{36} - %msg%n</pattern-->
+        </encoder>
+    </appender>
+
+    <logger name="akka" level="INFO" additivity="false">
+        <appender-ref ref="STDOUT_AKKA"/>
+    </logger>
+
+    <logger name="org.apache.kafka" level="WARN"/>
+
+    <root level="DEBUG">
+        <appender-ref ref="STDOUT"/>
+    </root>
+
+</configuration>

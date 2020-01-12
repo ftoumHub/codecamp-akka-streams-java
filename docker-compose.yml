@@ -1,0 +1,58 @@
+version: '2'
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:3.2.1
+    ports:
+      - 44776:44776
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 44776
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_INIT_LIMIT: 5
+      ZOOKEEPER_SYNC_LIMIT: 2
+      ZOOKEEPER_MAX_CLIENT_CNXNS: 20
+    extra_hosts:
+      - "moby:127.0.0.1"
+      - "localhost: 127.0.0.1"
+    restart: always
+    volumes:
+      - codecamp-akka-streams-java-zookeeper4kafka-01-data-v:/var/lib/zookeeper/data
+      - codecamp-akka-streams-java-zookeeper4kafka-01-log-v:/var/lib/zookeeper/log
+  kafka:
+    image: confluentinc/cp-kafka:3.2.1
+    ports:
+      - 44772:44772
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:44776
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:44772
+      KAFKA_LOG_CLEANER_ENABLE: 'false'
+      KAFKA_LOG_RETENTION_MS: -1
+      KAFKA_NUM_PARTITIONS: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+      KAFKA_DELETE_TOPIC_ENABLE: 'true'
+      KAKFA_COMPRESSION_TYPE: 'uncompressed'
+      KAFKA_UNCLEAN_LEADER_ELECTION_ENABLE: 'false'
+      KAFKA_OFFSETS_RETENTION_MINUTES: 99999999
+      KAFKA_OFFSETS_TOPIC_NUM_PARTITIONS: 1
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_OFFSET_METADATA_MAX_BYTES: 20000
+      KAFKA_LOG4J_ROOT_LOGLEVEL: INFO
+      KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,state.change.logger=INFO"
+      KAFKA_TOOLS_LOG4J_LOGLEVEL: INFO
+    restart: always
+    extra_hosts:
+      - "moby:127.0.0.1"
+      - "localhost: 127.0.0.1"
+    volumes:
+      - codecamp-akka-streams-java-kafka-01-data-v:/var/lib/kafka/data
+  schema-registry:
+    image: confluentinc/cp-schema-registry:5.1.0
+    ports:
+      - 8081:8081
+volumes:
+  codecamp-akka-streams-java-zookeeper4kafka-01-data-v:
+  codecamp-akka-streams-java-zookeeper4kafka-01-log-v:
+  codecamp-akka-streams-java-kafka-01-data-v:
+
