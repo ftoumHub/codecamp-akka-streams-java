@@ -38,22 +38,21 @@ public class Kata02FileSourceTest {
 
         List<String> list = new ArrayList<>();
         Sink<String, CompletionStage<Done>> sink = Sink.foreach(list::add);
-        RunnableGraph<Pair<CompletionStage<IOResult>, CompletionStage<Done>>> g = source.toMat(sink, Keep.both());
 
-        Pair<CompletionStage<IOResult>, CompletionStage<Done>> p = g.run(materializer);
+        Pair<CompletionStage<IOResult>, CompletionStage<Done>> p = source.toMat(sink, Keep.both()).run(materializer);
 
-        CompletableFuture<IOResult> completableFuture1 = p.first().toCompletableFuture();
-        IOResult ioResult = completableFuture1.get(1, TimeUnit.SECONDS);
-        assertTrue("Done.", completableFuture1.isDone());
-        assertFalse("Completed exceptionally.", completableFuture1.isCompletedExceptionally());
-        assertFalse("Canceled.", completableFuture1.isCancelled());
+        CompletableFuture<IOResult> cf1 = p.first().toCompletableFuture();
+        IOResult ioResult = cf1.get(1, TimeUnit.SECONDS);
+        assertTrue("Done.", cf1.isDone());
+        assertFalse("Completed exceptionally.", cf1.isCompletedExceptionally());
+        assertFalse("Canceled.", cf1.isCancelled());
         assertTrue(ioResult.wasSuccessful());
 
-        CompletableFuture<Done> completableFuture2 = p.second().toCompletableFuture();
-        completableFuture2.get(1, TimeUnit.SECONDS);
-        assertTrue("Done.", completableFuture2.isDone());
-        assertFalse("Completed exceptionally.", completableFuture2.isCompletedExceptionally());
-        assertFalse("Canceled.", completableFuture2.isCancelled());
+        CompletableFuture<Done> cf2 = p.second().toCompletableFuture();
+        cf2.get(1, TimeUnit.SECONDS);
+        assertTrue("Done.", cf2.isDone());
+        assertFalse("Completed exceptionally.", cf2.isCompletedExceptionally());
+        assertFalse("Canceled.", cf2.isCancelled());
         assertEquals(10, list.size());
         assertEquals(Arrays.asList("line one", "this line is the second line", "the third line",
                 "line four", "line five", "line six", "line seven", "line eight", "line nine", "last line"), list);

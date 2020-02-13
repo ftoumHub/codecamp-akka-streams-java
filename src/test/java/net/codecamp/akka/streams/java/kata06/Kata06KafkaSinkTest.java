@@ -57,17 +57,14 @@ public class Kata06KafkaSinkTest {
         final int nextOffset = currentOffset + 1;
 
         // obtain sink under test
-        final Sink<ProducerRecord<String, String>, CompletionStage<Done>> producerSink
-                = Kata06KafkaSink.createKafkaSink();
+        final Sink<ProducerRecord<String, String>, CompletionStage<Done>> producerSink = Kata06KafkaSink.createKafkaSink();
         assertNotNull("sink must not be null", producerSink);
 
         // define records to be produced
-        final Source<ProducerRecord<String, String>, NotUsed> producerRecordSource = Source.range(nextOffset, nextOffset + 9)
+        final CompletionStage<Done> producerCompletitionStage = Source.range(nextOffset, nextOffset + 9)
                 .map(i -> KATA06_RECORD + "-" + i)
-                .map(v -> new ProducerRecord<>(KATA06_TOPIC, KATA06_PARTITION, Instant.now().toEpochMilli(), v, v));
-
-        // start producing
-        CompletionStage<Done> producerCompletitionStage = producerRecordSource.runWith(producerSink, materializer);
+                .map(v -> new ProducerRecord<>(KATA06_TOPIC, KATA06_PARTITION, Instant.now().toEpochMilli(), v, v))
+                .runWith(producerSink, materializer);
 
         // wait a bit
         Thread.sleep(200);
@@ -76,13 +73,12 @@ public class Kata06KafkaSinkTest {
         Source<ConsumerRecord<String, String>, Consumer.Control> consumerSource
                 = Consumer.plainSource(createConsumerSettings(system, "kata06-assert-consumergroup", "none", true),
                 Subscriptions.assignmentWithOffset(createTopicPartitionKata06(), nextOffset));
+
         List<ConsumerRecord<String, String>> list = new ArrayList<>();
-        Sink<ConsumerRecord<String, String>, CompletionStage<Done>> consumerSink
-                = Sink.foreach(list::add);
-        RunnableGraph<Pair<Consumer.Control, CompletionStage<Done>>> g = consumerSource.toMat(consumerSink, Keep.both());
+        Sink<ConsumerRecord<String, String>, CompletionStage<Done>> consumerSink = Sink.foreach(list::add);
 
         // start consuming
-        Pair<Consumer.Control, CompletionStage<Done>> pair = g.run(materializer);
+        Pair<Consumer.Control, CompletionStage<Done>> pair = consumerSource.toMat(consumerSink, Keep.both()).run(materializer);
 
         // wait for production to complete
         CompletableFuture<Done> producerFuture = producerCompletitionStage.toCompletableFuture();

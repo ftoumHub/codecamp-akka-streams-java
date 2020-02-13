@@ -36,12 +36,12 @@ public class Kata01NumberSourceTest {
         List<Integer> list = new ArrayList<>();
         Sink<Integer, CompletionStage<Done>> sink = Sink.foreach(list::add);
 
-        CompletionStage<Done> completionStage = source.runWith(sink, materializer);
-        CompletableFuture<Done> completableFuture = completionStage.toCompletableFuture();
-        completableFuture.get(1, TimeUnit.SECONDS);
-        assertTrue("Done.", completableFuture.isDone());
-        assertFalse("Completed exceptionally.", completableFuture.isCompletedExceptionally());
-        assertFalse("Canceled.", completableFuture.isCancelled());
+        CompletableFuture<Done> cf = source.runWith(sink, materializer).toCompletableFuture();
+        cf.get(1, TimeUnit.SECONDS);
+
+        assertTrue("Done.", cf.isDone());
+        assertFalse("Completed exceptionally.", cf.isCompletedExceptionally());
+        assertFalse("Canceled.", cf.isCancelled());
         assertEquals(10, list.size());
         assertEquals(Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10), list);
     }

@@ -2,10 +2,17 @@ package net.codecamp.akka.streams.java.kata06;
 
 import akka.Done;
 import akka.actor.ActorSystem;
+import akka.kafka.ProducerSettings;
+import akka.kafka.javadsl.Producer;
 import akka.stream.javadsl.Sink;
+import akka.stream.javadsl.Source;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.serialization.StringSerializer;
 
 import java.util.concurrent.CompletionStage;
+
+import static net.codecamp.akka.streams.java.constants.Constants.KAFKA_CLIENT_PORT;
+import static net.codecamp.akka.streams.java.constants.Constants.KAFKA_IP_OR_HOST;
 
 class Kata06KafkaSink {
 
@@ -37,7 +44,14 @@ class Kata06KafkaSink {
      * @return The sink.
      */
     static Sink<ProducerRecord<String, String>, CompletionStage<Done>> createKafkaSink() {
-        return null;
+
+        final ProducerSettings<String, String> producerSettings = ProducerSettings
+                .create(system, new StringSerializer(), new StringSerializer())
+                .withBootstrapServers(KAFKA_IP_OR_HOST + ":" + KAFKA_CLIENT_PORT);
+
+        return Producer.plainSink(producerSettings);
+
+        //return Sink.foreach(v -> new ProducerRecord<String, String>("kata06-topic", "Record:"+v));
     }
 
 }
